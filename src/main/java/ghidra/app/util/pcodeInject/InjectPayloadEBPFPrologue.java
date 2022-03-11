@@ -89,17 +89,25 @@ public class InjectPayloadEBPFPrologue implements InjectPayload {
 		PcodeOp[] resOps;
 		Function func = program.getFunctionManager().getFunctionContaining(con.baseAddr);
 
-		Register sp = con.language.getRegister("R10");
+		Register fp = con.language.getRegister("R10");
+		Register sp = con.language.getRegister("R11");
 		AddressSpace constSpace = program.getAddressFactory().getConstantSpace();
-		resOps = new PcodeOp[1];
+		resOps = new PcodeOp[2];
 		
 		// add a single pcode op that creates the stack frame
-		// R10 = R10 + 0x1000;
-		PcodeOp op = new PcodeOp(con.baseAddr, 0, PcodeOp.INT_ADD);
+		// R10 = R11;
+		// R11 = R11 - 0x1000;
+		PcodeOp op0 = new PcodeOp(con.baseAddr, 0, PcodeOp.COPY);
+		op0.setInput(new Varnode(sp.getAddress(), sp.getBitLength()/8), 0);
+		op0.setOutput(new Varnode(fp.getAddress(), fp.getBitLength()/8));
+		resOps[0] = op0;
+
+		PcodeOp op = new PcodeOp(con.baseAddr, 0, PcodeOp.INT_SUB);
 		op.setInput(new Varnode(sp.getAddress(), sp.getBitLength()/8), 0);
 		op.setInput(new Varnode(constSpace.getAddress(0x1000), 8), 1);
 		op.setOutput(new Varnode(sp.getAddress(), sp.getBitLength()/8));
-		resOps[0] = op;
+
+		resOps[1] = op;
 		return resOps;
 	}
 
