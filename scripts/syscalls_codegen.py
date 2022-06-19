@@ -50,6 +50,7 @@ class FunctionEntry:
             self.args.append((arg_type, arg_name))
 
     def generate_java_code(self) -> str:
+        comment = ' '.join(self.description.split('\n'))
         s = f'''
         case("{self.name}"):
             model.setSignatureFieldText("{self.raw_code}");
@@ -63,9 +64,7 @@ class FunctionEntry:
                 break;
             }}
             model.apply();				
-            func.setComment("""
-{self.description}
-            """);
+            func.setComment("{ comment }");
             break;
         '''
         return s
